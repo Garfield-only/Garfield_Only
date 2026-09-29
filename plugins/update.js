@@ -1,25 +1,28 @@
 import { exec } from "child_process"
+import moment from 'moment-timezone'
+moment.locale('es')
 
 const handler = async (m, { conn }) => {
-    const owner = "𝘽𝙮 𝘽𝙖𝙧𝙗𝙤𝙯𝙖"
+    const fecha = moment.tz('America/Lima').format('DD/MM/YYYY hh:mm:ss a')
+    const ownerNum = '51927174369'
+    const head = `😼 𓆩 𝗟𝗨𝗫 𝗫 𝗬𝗔𝗟𝗟𝗜𝗖𝗢 𓆪 🍕\n\n꒰ ◞⁺⊹ ．${fecha}\n`
+    const footer = `\n━━━━━━━━━━━\n🍕 *LUX X YALLICO* 😼\n👑 @${ownerNum}`
 
-    if (m.react) await m.react('🌀')
+    try { await m.react('🌀') } catch {}
 
-    await conn.reply(m.chat, '🌌 *NOX SYSTEM* ➔ Actualizando módulos del repositorio...', m)
-
-    exec('git pull', async (err, stdout, stderr) => {
+    exec('git pull', async (err, stdout) => {
+        let text
         if (err) {
-            if (m.react) await m.react('❌')
-            return conn.reply(m.chat, `🌌 *NOX ERROR* ➔ Fallo en la actualización.\n\n\`\`\`${err.message}\`\`\``, m)
+            try { await m.react('❌') } catch {}
+            text = head + `\n❌ *ERROR*\n\`\`\`${err.message}\`\`\`` + footer
+        } else if (stdout.includes('Already up to date.')) {
+            try { await m.react('✅') } catch {}
+            text = head + `\n✅ *Sin cambios*\nYa estás en la última versión.` + footer
+        } else {
+            try { await m.react('✅') } catch {}
+            text = head + `\n✅ *Actualizado*\n\`\`\`${stdout.slice(0,1200)}\`\`\`` + footer
         }
-
-        if (stdout.includes('Already up to date.')) {
-            if (m.react) await m.react('🌌')
-            return conn.reply(m.chat, `🌌 *NOX SYSTEM* ➔ El sistema ya se encuentra en su versión más reciente.\n\n👑 ${owner}`, m)
-        }
-
-        if (m.react) await m.react('🌌')
-        return conn.reply(m.chat, `🌌 *NOX SYSTEM* ➔ Actualización aplicada con éxito.\n\n*Cambios:*\n\`\`\`${stdout}\`\`\`\n\n👑 ${owner}`, m)
+        await conn.sendMessage(m.chat, { text, mentions: [ownerNum+'@s.whatsapp.net'] }, { quoted: m })
     })
 }
 
@@ -27,5 +30,4 @@ handler.help = ['update']
 handler.tags = ['owner']
 handler.command = /^(update|actualizar|fix)$/i
 handler.rowner = true
-
 export default handler
