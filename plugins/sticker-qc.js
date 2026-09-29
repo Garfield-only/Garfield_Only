@@ -13,7 +13,7 @@ const handler = async (m, { conn, args, usedPrefix }) => {
     let authorName, text, pp;
 
     if (!args.length && !(m.quoted && m.quoted.text)) {
-        return conn.sendMessage(m.chat, { text: head + `\n✍️ Ingresa un texto para tu sticker quotly.\n\n> Ejemplo: *${usedPrefix}qc Hola mundo*\n> Ejemplo: *${usedPrefix}qc @user Nombre / Hola*\n> Ejemplo: *${usedPrefix}qc Nombre / Hola*` + footer }, { quoted: m })
+        return conn.sendMessage(m.chat, { text: head + `\n✍️ Ingresa un texto para tu sticker quotly.\n\n> Ejemplo: *${usedPrefix}qc Hola mundo*` + footer }, { quoted: m })
     }
 
     if (mentionedJid && args.join(" ").includes("/")) {
@@ -39,9 +39,6 @@ const handler = async (m, { conn, args, usedPrefix }) => {
         text = m.quoted.text;
         try { authorName = await conn.getName(m.sender); } catch { authorName = "Anónimo"; }
         pp = await conn.profilePictureUrl(m.sender, 'image').catch(_ => 'https://telegra.ph/file/320b066dc81928b782c7b.png');
-    }
-    else {
-        return conn.sendMessage(m.chat, { text: head + `\n🐼 *Formato inválido.*\n\n> Usa: *${usedPrefix}qc Hola mundo*\n> Usa: *${usedPrefix}qc @user Nombre / Texto*` + footer }, { quoted: m })
     }
 
     if (!text) return conn.sendMessage(m.chat, { text: head + `\n🐼 Ingresa un texto para el sticker.` + footer }, { quoted: m })
@@ -70,7 +67,8 @@ const handler = async (m, { conn, args, usedPrefix }) => {
             headers: { 'Content-Type': 'application/json' }
         });
         const buffer = Buffer.from(json.data.result.image, 'base64');
-        const stiker = await sticker(buffer, false, global.stickpack, global.stickauth);
+        const stiker = await sticker(buffer, false, '', '');
+
         if (stiker) {
             await conn.sendFile(m.chat, stiker, 'Quotely.webp', '', m);
             await react("✅")
@@ -80,12 +78,11 @@ const handler = async (m, { conn, args, usedPrefix }) => {
     } catch (e) {
         console.error(e);
         await react("❌")
-        await conn.sendMessage(m.chat, { text: head + `\n❌ Error al generar el sticker. Intenta de nuevo.` + footer }, { quoted: m })
+        await conn.sendMessage(m.chat, { text: head + `\n❌ Error al generar el sticker.` + footer }, { quoted: m })
     }
 }
 
 handler.help = ['qc']
 handler.tags = ['sticker']
 handler.command = ['quotly', 'qc']
-
 export default handler
